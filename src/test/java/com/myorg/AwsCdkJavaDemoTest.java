@@ -17,7 +17,7 @@ public class AwsCdkJavaDemoTest {
     @Test
     public void testStack() throws IOException {
         App app = new App();
-        AwsCdkJavaDemoStack stack = new AwsCdkJavaDemoStack(app, "test");
+        AutoLoveLetterStack stack = new AutoLoveLetterStack(app, "test");
 
         // synthesize the stack to a CloudFormation template
         JsonNode actual = JSON.valueToTree(app.synth().getStackArtifact(stack.getArtifactId()).getTemplate());
