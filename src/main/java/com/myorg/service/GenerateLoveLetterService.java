@@ -1,5 +1,6 @@
 package com.myorg.service;
 
+import com.myorg.utils.InitializeDynamoDBData;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.RemovalPolicy;
 import software.amazon.awscdk.customresources.AwsCustomResource;
@@ -21,10 +22,9 @@ import software.amazon.awscdk.services.sns.Topic;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class GenerateLoveLetterService extends Construct {
-
-
 
     public GenerateLoveLetterService(Construct scope, String id) {
         super(scope, id);
@@ -35,9 +35,14 @@ public class GenerateLoveLetterService extends Construct {
                 .name("itemId")
                 .type(AttributeType.STRING)
                 .build();
+        Attribute sortKey = Attribute.builder()
+                .name("itemType")
+                .type(AttributeType.STRING)
+                .build();
         tableProps = TableProps.builder()
                 .tableName("love-words-table")
                 .partitionKey(partitionKey)
+                .sortKey(sortKey)
                 .billingMode(BillingMode.PAY_PER_REQUEST)
                 .removalPolicy(RemovalPolicy.DESTROY)
                 .build();
@@ -46,23 +51,16 @@ public class GenerateLoveLetterService extends Construct {
         // Initialize love-words
         AwsSdkCall initializeData = AwsSdkCall.builder()
                 .service("DynamoDB")
-                .action("putItem")
+                .action("BatchWriteItem")
                 .physicalResourceId(PhysicalResourceId.of(loveWordsTable.getTableName() + "_initialization"))
-                .parameters(Map.ofEntries(
-                        Map.entry("TableName", loveWordsTable.getTableName()),
-                        Map.entry("Item", Map.ofEntries(
-                                Map.entry("itemId", Map.of("S", "0")),
-                                Map.entry("data", Map.of("S", "data"))
-                        )),
-                        Map.entry("ConditionExpression", "attribute_not_exists(itemId)")
-                ))
+                .parameters(InitializeDynamoDBData.initializeLoveLetter(loveWordsTable.getTableName()))
                 .build();
 
         AwsCustomResource tableInitializationResource = AwsCustomResource.Builder.create(this, "TableInitializationResource")
                 .policy(AwsCustomResourcePolicy.fromStatements(List.of(
                         PolicyStatement.Builder.create()
                                 .effect(Effect.ALLOW)
-                                .actions(List.of("dynamodb:PutItem"))
+                                .actions(List.of("dynamodb:BatchWriteItem"))
                                 .resources(List.of(loveWordsTable.getTableArn()))
                                 .build()
                 )))
