@@ -1,5 +1,6 @@
 package com.myorg.service;
 
+import com.myorg.resources.DynamoDBDataInitializer;
 import com.myorg.utils.InitializeDynamoDBData;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.RemovalPolicy;
@@ -21,8 +22,6 @@ import software.amazon.awscdk.services.sns.Topic;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 public class GenerateLoveLetterService extends Construct {
 
