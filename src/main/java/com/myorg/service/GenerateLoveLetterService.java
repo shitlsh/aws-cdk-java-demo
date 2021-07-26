@@ -48,25 +48,8 @@ public class GenerateLoveLetterService extends Construct {
         Table loveWordsTable = new Table(this, "LoveWordsTable", tableProps);
 
         // Initialize love-words
-        AwsSdkCall initializeData = AwsSdkCall.builder()
-                .service("DynamoDB")
-                .action("BatchWriteItem")
-                .physicalResourceId(PhysicalResourceId.of(loveWordsTable.getTableName() + "_initialization"))
-                .parameters(InitializeDynamoDBData.initializeLoveLetter(loveWordsTable.getTableName()))
-                .build();
-
-        AwsCustomResource tableInitializationResource = AwsCustomResource.Builder.create(this, "TableInitializationResource")
-                .policy(AwsCustomResourcePolicy.fromStatements(List.of(
-                        PolicyStatement.Builder.create()
-                                .effect(Effect.ALLOW)
-                                .actions(List.of("dynamodb:BatchWriteItem"))
-                                .resources(List.of(loveWordsTable.getTableArn()))
-                                .build()
-                )))
-                .onCreate(initializeData)
-                .onUpdate(initializeData)
-                .build();
-        tableInitializationResource.getNode().addDependency(loveWordsTable);
+        DynamoDBDataInitializer initializeSalutations = new DynamoDBDataInitializer(this,"InitializeSalutations",loveWordsTable,new HashMap<>());
+        initializeSalutations.getNode().addDependency(loveWordsTable);
 
         // Create a topic to publish generated love letter
         Topic loveLetterTopic = Topic.Builder.create(this,"LoveLetterTopic").build();
