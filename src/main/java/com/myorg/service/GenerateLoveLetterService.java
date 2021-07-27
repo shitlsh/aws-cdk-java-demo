@@ -23,6 +23,8 @@ import software.amazon.awscdk.services.sns.Topic;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.myorg.utils.InitializeDynamoDBData.initializeSalutations;
+
 public class GenerateLoveLetterService extends Construct {
 
     public GenerateLoveLetterService(Construct scope, String id) {
@@ -48,8 +50,9 @@ public class GenerateLoveLetterService extends Construct {
         Table loveWordsTable = new Table(this, "LoveWordsTable", tableProps);
 
         // Initialize love-words
-        DynamoDBDataInitializer initializeSalutations = new DynamoDBDataInitializer(this,"InitializeSalutations",loveWordsTable,new HashMap<>());
-        initializeSalutations.getNode().addDependency(loveWordsTable);
+        DynamoDBDataInitializer salutationsInitializer = new DynamoDBDataInitializer(this,"SalutationsInitializer",
+                loveWordsTable,initializeSalutations(loveWordsTable.getTableName()));
+        salutationsInitializer.getNode().addDependency(loveWordsTable);
 
         // Create a topic to publish generated love letter
         Topic loveLetterTopic = Topic.Builder.create(this,"LoveLetterTopic").build();
